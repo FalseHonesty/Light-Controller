@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Light Controller</title>
+</head>
+<body>
+    <h1 th:if="${modifiedColor}">You successfully set the color to <span th:text="${currentColor}"></span></h1>
+
+    <h1 th:if="${failedModifiedColor}">Please wait another <span th:text="${waitTime}"></span> seconds before setting the color!</h1>
+
+    <h2>Current Color: <span th:text="${currentColor}" th:style="|color: ${currentColor}|">?</span></h2>
+
+    <h2>Change to:</h2>
+    <form action="/light/change-light" method="post">
+        <label for="color">Color</label>
+        <input name="color" id="color" type="color" th:value="${currentColor}" required>
+
+        <input type="submit">
+    </form>
+</body>
+</html>

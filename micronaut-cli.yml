@@ -1,0 +1,5 @@
+profile: service
+defaultPackage: falsehonesty.backend
+---
+testFramework: junit
+sourceLanguage: kotlin
