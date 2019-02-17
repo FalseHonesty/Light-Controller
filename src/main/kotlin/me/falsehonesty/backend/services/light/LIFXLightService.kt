@@ -1,38 +1,35 @@
-package me.falsehonesty.backend.services
+package me.falsehonesty.backend.services.light
 
-import io.micronaut.context.annotation.Value
+import io.micronaut.context.annotation.Property
+import io.micronaut.context.annotation.Requires
 import okhttp3.MediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
 import org.slf4j.LoggerFactory
-import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class LightService(
-    @Inject private val notificationService: NotificationService,
-    @Value("\${lights.apikey}") private val apiKey: String
-) {
+@Requires(property = "lights.impl", value = "lifx")
+class LIFXLightService(@Property(name = "lights.apikey") private val apiKey: String) : LightService {
     private val client = OkHttpClient()
-    private val log = LoggerFactory.getLogger(LightService::class.java)
+    private val log = LoggerFactory.getLogger(LIFXLightService::class.java)
 
-    var lastSend = System.currentTimeMillis()
-    var color: String = "#000000"
+    private var lastSend = System.currentTimeMillis() - 5000
+    private var color: String = "#000000"
 
-    fun setNewColor(value: String): Boolean {
+    override fun setNewColor(color: String): Boolean {
         if (lastSend + 5000 > System.currentTimeMillis()) {
             return false
         }
 
-        color = value
-        return sendColorToLIFX(value).also { success ->
-            lastSend = System.currentTimeMillis()
-
-            if (success)
-                notificationService.sendNotification("Light Color Change", "Your light's new color is $value")
-        }
+        this.color = color
+        return sendColorToLIFX(color).also { lastSend = System.currentTimeMillis() }
     }
+
+    override fun getCurrentColor() = color
+
+    override fun getCooldown() = ((System.currentTimeMillis() - lastSend) / 1000).toInt()
 
     private fun sendColorToLIFX(color: String): Boolean {
         val request = Request.Builder()
@@ -44,7 +41,8 @@ class LightService(
             .addHeader("Authorization", "Bearer $apiKey")
             .build()
 
-        val response = client.newCall(request).execute().body()?.string()
+        val call = client.newCall(request).execute()
+        val response = call.body()?.string()
 
         return response?.contains("error") != true
     }

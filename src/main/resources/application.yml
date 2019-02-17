@@ -5,6 +5,8 @@ micronaut:
     name: falsehonesty-backend
 lights:
   apikey: none
+  impl: lifx # Can be lifx, noop, ...
 notifications:
   user: none
   token: none
+  impl: pushover # can be pushover, noop, ...
